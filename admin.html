@@ -160,9 +160,14 @@
                 <div id="adminAddBanner" class="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl">
                     <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2"><i class="fa-solid fa-images text-amber-400"></i> নতুন ব্যানার যুক্ত করুন</h3>
                     <form id="addBannerForm" class="space-y-3">
-                        <input type="text" id="bannerTitle" placeholder="ব্যানার টাইটেল" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none">
-                        <input type="url" id="bannerImg" placeholder="ব্যানার ইমেজের URL" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none">
-                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 rounded-lg text-sm transition-all">ব্যানার আপলোড করুন</button>
+                        <input type="text" id="bannerTitle" placeholder="ব্যানার টাইটেল" required maxlength="100" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none">
+                        <label for="bannerImageFile" class="banner-file-picker"><i class="fa-solid fa-cloud-arrow-up"></i><span><strong>গ্যালারি থেকে ব্যানার নির্বাচন করুন</strong><small>PNG, JPG, WEBP · সর্বোচ্চ 32 MB</small></span><i class="fa-solid fa-images picker-end"></i></label>
+                        <input type="file" id="bannerImageFile" accept="image/png,image/jpeg,image/webp,image/gif" class="sr-only">
+                        <div id="bannerImagePreview" class="banner-image-preview hidden"><img id="bannerPreviewImg" alt="ব্যানার প্রিভিউ"><div><strong id="bannerFileName">Selected image</strong><small id="bannerFileMeta">Upload ready</small></div><button type="button" id="clearBannerImage" aria-label="ছবি সরান"><i class="fa-solid fa-xmark"></i></button></div>
+                        <div class="banner-or"><span>অথবা</span></div>
+                        <input type="url" id="bannerImg" placeholder="ইমেজ URL (ঐচ্ছিক)" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none">
+                        <p class="text-xs text-slate-400">গ্যালারি থেকে ছবি দিলে ImgBB API স্বয়ংক্রিয়ভাবে ইমেজ আপলোড করে লিংক তৈরি করবে এবং ব্যানার সেভ করবে।</p>
+                        <button type="submit" id="addBannerSubmit" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-3 rounded-xl text-sm transition-all"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> ব্যানার যুক্ত করুন</button>
                     </form>
                 </div>
 
@@ -174,6 +179,9 @@
         </div>
     </div>
 
+    <div id="adminNotice" class="admin-notice" role="status" aria-live="polite" aria-hidden="true">
+      <div class="admin-notice-backdrop"></div><section class="admin-notice-card"><div id="adminNoticeIcon" class="admin-notice-icon"><i class="fa-solid fa-check"></i></div><h3 id="adminNoticeTitle">সফল হয়েছে</h3><p id="adminNoticeMessage">পরিবর্তন সেভ হয়েছে।</p><button type="button" id="adminNoticeClose">ঠিক আছে</button></section>
+    </div>
     <div id="userEditModal" class="edit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
       <div class="edit-backdrop" data-close-edit></div><section class="edit-card"><button type="button" class="edit-close" data-close-edit aria-label="বন্ধ করুন"><i class="fa-solid fa-xmark"></i></button><p class="panel-eyebrow">PLAYER ACCOUNT</p><h3 id="editUserTitle">ইউজার এডিট করুন</h3><p class="admin-muted">এখানে করা পরিবর্তন Firestore-এ সেভ হবে।</p>
         <form id="editUserForm" class="edit-user-form"><input id="editOriginalId" type="hidden"><label>ইউজারের নাম<input id="editUserName" maxlength="20" required></label><label>ইউজার আইডি<input id="editUserId" required><small>আইডি পরিবর্তন করলে পুরোনো আইডি থেকে নতুন আইডিতে প্রোফাইল সরানো হবে। ইউজারকে নতুন আইডি দিয়ে পুনরায় প্রোফাইল তৈরি করতে হতে পারে।</small></label><label>মোট পয়েন্ট<input id="editUserScore" type="number" min="0" step="1" required></label><label>প্রোফাইল ছবির URL<input id="editUserPhoto" type="url" placeholder="https://…"></label><div id="editUserStatus" class="edit-status" aria-live="polite"></div><div class="edit-actions"><button type="button" class="secondary-btn" data-close-edit>বাতিল</button><button type="submit" class="primary-btn"><i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সেভ করুন</button></div></form>
