@@ -78,22 +78,35 @@ body.playing-game>header,body.playing-game>main,body.playing-game>.bottom-nav{vi
 .leaderboard-page .lb-row:first-child{border-color:#fbbf2466}
 @media(max-width:640px){.leaderboard-page{border-radius:20px;padding:14px}.leaderboard-page .pod{padding:10px 3px}.leaderboard-page .pod .av{width:38px;height:38px}}
 
-/* Auto-rotating single-banner carousel */
-#bannerContainer:not(.hidden){display:block;width:100%;margin-bottom:2rem}
-.banner-slide{position:relative;width:100%;height:clamp(190px,32vw,360px);overflow:hidden;border:1px solid rgba(192,132,252,.3);border-radius:26px;background:#0f172a;isolation:isolate;box-shadow:0 18px 50px rgba(0,0,0,.28);animation:bannerEnter .45s ease both}
-.banner-slide>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-2}
-.banner-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,6,23,.88),rgba(2,6,23,.35) 55%,rgba(2,6,23,.08)),linear-gradient(0deg,rgba(2,6,23,.58),transparent 55%);z-index:-1}
-.banner-caption{position:absolute;left:clamp(18px,5vw,52px);bottom:clamp(22px,5vw,48px);max-width:min(70%,620px)}
-.banner-kicker{display:inline-block;color:#e9d5ff;font-size:clamp(9px,1.5vw,12px);letter-spacing:.18em;font-weight:800;margin-bottom:9px}
-.banner-caption h2{font-size:clamp(22px,4vw,42px);line-height:1.15;font-weight:800;color:white;text-shadow:0 3px 20px #0009}
-.banner-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:white;background:rgba(2,6,23,.55);border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(8px);transition:background .2s,transform .2s}
-.banner-arrow:hover{background:rgba(124,58,237,.85);transform:translateY(-50%) scale(1.06)}
-.banner-arrow.prev{left:14px}.banner-arrow.next{right:14px}
-.banner-dots{position:absolute;right:22px;bottom:18px;display:flex;align-items:center;gap:7px}
-.banner-dot{height:7px;width:7px;border-radius:99px;background:#ffffff80;transition:width .25s,background .25s}
-.banner-dot.active{width:24px;background:#e9d5ff}
-@keyframes bannerEnter{from{opacity:.65;transform:scale(.995)}to{opacity:1;transform:scale(1)}}
-@media(max-width:640px){.banner-slide{height:190px;border-radius:19px}.banner-caption{max-width:75%;left:18px;bottom:22px}.banner-arrow{width:34px;height:34px}.banner-arrow.prev{left:9px}.banner-arrow.next{right:9px}.banner-dots{right:14px;bottom:12px}.banner-kicker{font-size:9px}}
+/* PLAYZONE X — premium responsive hero banner carousel */
+#bannerContainer:not(.hidden){display:block;width:100%;margin:0 0 clamp(22px,3vw,38px);}
+.banner-slide{position:relative;width:100%;height:clamp(220px,36vw,440px);overflow:hidden;border:1px solid rgba(139,92,246,.42);border-radius:clamp(18px,2.2vw,30px);background:#070d20;isolation:isolate;box-shadow:0 24px 70px rgba(0,0,0,.42),0 0 38px rgba(99,102,241,.12);animation:bannerAppear .65s cubic-bezier(.2,.75,.25,1) both;}
+.banner-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-3;animation:bannerImageReveal 7s ease-out both;}
+.banner-shade{position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(3,7,20,.72) 0%,rgba(3,7,20,.35) 38%,rgba(3,7,20,.04) 72%),linear-gradient(0deg,rgba(2,6,23,.62),transparent 48%);}
+.banner-glow{position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 12% 100%,rgba(124,58,237,.2),transparent 42%),linear-gradient(115deg,transparent 55%,rgba(34,211,238,.07));}
+.banner-topline{position:absolute;top:clamp(14px,2.5vw,26px);left:clamp(17px,3.2vw,38px);right:clamp(17px,3.2vw,38px);display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.banner-brand{display:inline-flex;align-items:center;gap:9px;color:#e9e7ff;font-size:clamp(9px,1vw,12px);font-weight:900;letter-spacing:.17em;text-shadow:0 2px 12px #000;}
+.banner-brand i{color:#c4b5fd;font-size:11px}.banner-brand-dot{width:7px;height:7px;border-radius:50%;background:#a78bfa;box-shadow:0 0 12px #a78bfa;}
+.banner-count{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid #ffffff35;border-radius:99px;background:#050b1c70;backdrop-filter:blur(12px);color:#cbd5e1;font-size:11px;font-weight:700;letter-spacing:.1em;}
+.banner-count b{color:#fff;font-size:14px}.banner-count span{color:#8b5cf6;}
+.banner-caption{position:absolute;left:clamp(20px,5vw,64px);bottom:clamp(42px,7vw,76px);max-width:min(58%,660px);animation:captionRise .6s .08s both;}
+.banner-kicker{display:inline-flex;align-items:center;color:#c4b5fd;font-size:clamp(8px,1vw,11px);letter-spacing:.2em;font-weight:900;margin-bottom:10px;}
+.banner-caption h2{font-size:clamp(23px,4.2vw,48px);line-height:1.08;font-weight:900;letter-spacing:-.035em;color:#fff;text-wrap:balance;text-shadow:0 3px 24px #000b;margin:0 0 10px;}
+.banner-caption p{margin:0;color:#e2e8f0;font-size:clamp(10px,1.35vw,15px);font-weight:500;letter-spacing:.015em;text-shadow:0 2px 12px #000;}
+.banner-controls{position:absolute;right:clamp(16px,3vw,34px);top:50%;display:flex;gap:9px;transform:translateY(-50%);}
+.banner-arrow{width:clamp(35px,3.5vw,46px);height:clamp(35px,3.5vw,46px);border-radius:50%;display:grid;place-items:center;color:white;background:rgba(5,10,28,.56);border:1px solid rgba(255,255,255,.36);backdrop-filter:blur(12px);box-shadow:0 5px 20px #0004;transition:background .22s,border-color .22s,transform .22s;}
+.banner-arrow:hover{background:rgba(124,58,237,.9);border-color:#c4b5fd;transform:scale(1.08);}
+.banner-navigation{position:absolute;left:clamp(20px,5vw,64px);right:clamp(20px,3vw,34px);bottom:clamp(15px,2.2vw,23px);display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.banner-dots{display:flex;align-items:center;gap:7px}.banner-dot{height:5px;width:13px;border-radius:99px;background:#ffffff65;transition:width .3s,background .3s,box-shadow .3s;}
+.banner-dot.active{width:31px;background:#c4b5fd;box-shadow:0 0 12px #a78bfa;}
+.banner-hint{font-size:8px;letter-spacing:.2em;font-weight:800;color:#ffffffa8;}
+.banner-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:#ffffff20;overflow:hidden;}.banner-progress span{display:block;width:0;height:100%;background:linear-gradient(90deg,#22d3ee,#8b5cf6,#ec4899);box-shadow:0 0 12px #8b5cf6;}
+@keyframes bannerProgress{from{width:0}to{width:100%}}
+@keyframes bannerAppear{from{opacity:0;transform:translateY(9px) scale(.992)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bannerImageReveal{from{transform:scale(1.045)}to{transform:scale(1)}}
+@keyframes captionRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:640px){.banner-slide{height:clamp(205px,54vw,270px);border-radius:19px}.banner-image{object-position:58% center}.banner-shade{background:linear-gradient(90deg,rgba(3,7,20,.82),rgba(3,7,20,.38) 68%,rgba(3,7,20,.12)),linear-gradient(0deg,rgba(2,6,23,.68),transparent 60%)}.banner-caption{max-width:76%;left:18px;bottom:51px}.banner-caption h2{font-size:clamp(20px,5.7vw,29px);margin-bottom:6px}.banner-caption p{font-size:10px;max-width:90%}.banner-kicker{font-size:8px;margin-bottom:7px}.banner-topline{left:16px;right:14px;top:13px}.banner-brand{font-size:8px;letter-spacing:.12em}.banner-count{padding:5px 8px;font-size:9px}.banner-count b{font-size:11px}.banner-controls{right:12px;top:auto;bottom:53px;transform:none;gap:6px}.banner-arrow{width:31px;height:31px;font-size:10px}.banner-navigation{left:18px;right:15px;bottom:14px}.banner-hint{font-size:7px}.banner-dot{height:4px;width:10px}.banner-dot.active{width:23px}}
+@media(prefers-reduced-motion:reduce){.banner-slide,.banner-image,.banner-caption{animation:none!important}.banner-arrow,.banner-dot{transition:none!important}}
 
 .lb-row .av{width:34px;height:34px;margin:0;font-size:13px;flex-shrink:0}
 
@@ -233,3 +246,20 @@ main{min-width:0}
 .pwa-help-card h2{font-size:20px;font-weight:800;margin-bottom:10px}.pwa-help-card p{color:#cbd5e1;font-size:14px;line-height:1.7}.pwa-help-card button{margin-top:16px;width:100%;padding:11px;border-radius:12px;background:linear-gradient(90deg,#7c3aed,#db2777);font-weight:700}
 @media(max-width:480px){.pwa-install-fab{width:52px;height:52px;right:14px;bottom:calc(98px + env(safe-area-inset-bottom))}.pwa-install-fab span{display:none}}
 body.playing-game .pwa-install-fab{display:none}
+/* Banner slide counter intentionally hidden; retain the original slider layout. */
+.banner-count{display:none!important}
+
+/* ===== Owner premium animated SVG frame (Leaderboard) ===== */
+.owner-ring{--sz:60px;position:relative;display:inline-block;width:var(--sz);height:var(--sz);flex-shrink:0;margin:calc(var(--sz)*.5) auto calc(var(--sz)*.2);isolation:isolate}
+.owner-ring .or-core{display:block;width:100%;height:100%;border-radius:50%;overflow:hidden}
+.owner-ring .or-core .av{width:100%!important;height:100%!important;margin:0!important;border-radius:50%;outline:none!important;box-shadow:none!important;font-size:calc(var(--sz)*.38)!important}
+.owner-ring .or-frame{position:absolute;z-index:2;max-width:none;pointer-events:none;user-select:none;width:calc(var(--sz)*1.7142857);height:calc(var(--sz)*1.8571429);left:calc(var(--sz)*-.3571429);top:calc(var(--sz)*-.5)}
+.owner-ring.no-crown{margin:0 calc(var(--sz)*.3) 0 calc(var(--sz)*.2)}
+.owner-ring.no-crown .or-frame{height:calc(var(--sz)*1.7142857);top:calc(var(--sz)*-.3571429)}
+.admin-card .owner-ring{margin:calc(var(--sz)*.52) calc(var(--sz)*.3) calc(var(--sz)*.25) calc(var(--sz)*.3)}
+.pod .owner-ring{margin-top:calc(var(--sz)*.5)}
+
+/* Owner frame has bird wings → wider canvas (320 units) */
+.owner-ring.owner-wing .or-frame{width:calc(var(--sz)*2.2857143);left:calc(var(--sz)*-.6428571)}
+.owner-ring.owner-wing.no-crown{margin:0 calc(var(--sz)*.75) 0 calc(var(--sz)*.75)}
+.admin-card .owner-ring.owner-wing{margin:calc(var(--sz)*.52) calc(var(--sz)*.75) calc(var(--sz)*.25) calc(var(--sz)*.55)}
