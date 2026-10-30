@@ -1,8 +1,8 @@
 /* PlayZone X service worker — cache the app shell, never cache Firebase/API data. */
-const CACHE_NAME = 'playzone-x-shell-v1';
+const CACHE_NAME = 'playzone-x-shell-v4';
 const APP_SHELL = [
   './', './index.html', './manifest.json',
-  './css/style.css', './js/security.js', './js/app.js', './js/config.js',
+  './css/style.css', './assets/owner-frame.svg', './assets/owner-frame-sm.svg', './assets/rank-1.svg', './assets/rank-2.svg', './assets/rank-3.svg', './js/security.js', './js/app.js', './js/config.js',
   './assets/logo.svg', './assets/pwa-icon-192.png', './assets/pwa-icon-512.png'
 ];
 self.addEventListener('install', event => {

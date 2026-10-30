@@ -14,12 +14,14 @@ service cloud.firestore {
         && request.resource.data.username is string
         && request.resource.data.username.size() >= 3 && request.resource.data.username.size() <= 20
         && request.resource.data.totalScore == 0
-        && request.resource.data.keys().hasOnly(['name','username','totalScore','bests','photoURL','createdAt','lastActiveAt']));
+        && request.resource.data.keys().hasOnly(['name','username','email','totalScore','bests','photoURL','createdAt','lastActiveAt'])
+        && request.resource.data.email == request.auth.token.email);
       allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid
         && okName(request.resource.data.name)
         && request.resource.data.totalScore is int && request.resource.data.totalScore >= resource.data.totalScore
         && request.resource.data.totalScore <= 100000000
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','totalScore','bests','lastActiveAt','lastPlayedGame','photoURL'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','email','totalScore','bests','lastActiveAt','lastPlayedGame','photoURL'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['email']) || request.resource.data.email == request.auth.token.email)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['photoURL']) || (request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 2048 && request.resource.data.photoURL.matches('^https://.*'))));
       allow delete: if isAdmin();
     }
