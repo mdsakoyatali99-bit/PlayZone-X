@@ -2,11 +2,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, onValue, get, runTransaction, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getFirestore, doc, setDoc, updateDoc, getDoc, onSnapshot, collection, query, orderBy, where, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { firebaseConfig, MAX_SCORE, IMGBB_API_KEY, esc, safeUrl } from "./config.js";
+import { firebaseConfig, ADMIN_EMAIL, MAX_SCORE, IMGBB_API_KEY, esc, safeUrl } from "./config.js";
 
 const app = initializeApp(firebaseConfig), rtdb = getDatabase(app), fs = getFirestore(app), auth = getAuth(app);
 const $ = id => document.getElementById(id);
-let allGames = [], curCat = "All", curGame = null, adminInfo = null, lbDocs = [], me = null, activeSection = "games", authMode = "login", chatUnsub = null;
+let allGames = [], curCat = "All", curGame = null, adminInfo = null, ownerProfile = null, lbDocs = [], me = null, activeSection = "games", authMode = "login", chatUnsub = null;
 const t0 = Date.now(); let loaded = 0;
 const ready = () => { if (++loaded >= 2) setTimeout(() => $("loader").classList.add("done"), Math.max(0, 2200 - (Date.now() - t0))); };
 setTimeout(() => $("loader").classList.add("done"), 7000); // safety
@@ -16,7 +16,7 @@ try { localStorage.removeItem("vg_user"); } catch {}
 const RESERVED = /^(admin|administrator|owner|support|system|bot|অ্যাডমিন|এডমিন|ওনার)$/i;
 const cleanName = n => String(n || "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim();
 const normUsername = n => cleanName(n).toLowerCase();
-const isOwner = u => !!u && String(u.email || "").toLowerCase() === "mdsakoyatali99@gmail.com";
+const isOwner = u => !!u && String(u.email || "").trim().toLowerCase() === String(ADMIN_EMAIL || "").trim().toLowerCase();
 function saveMe(u) { me = u; if (u) localStorage.setItem("vg_user", JSON.stringify(u)); else localStorage.removeItem("vg_user"); paintUser(); renderLB(); }
 onAuthStateChanged(auth, async user => {
   if (!user) { saveMe(null); return; }
@@ -24,7 +24,8 @@ onAuthStateChanged(auth, async user => {
     const profileRef = doc(fs, "users", user.uid), snap = await getDoc(profileRef);
     if (!snap.exists()) return; // Signup/login handlers create the profile after validating the account.
     const profile = snap.data();
-    saveMe({ id:user.uid, uid:user.uid, email:user.email || "", name:profile.name || "Player", username:profile.username || profile.name || "Player", photoURL:profile.photoURL || user.photoURL || "", owner:isOwner(user) }); onSnapshot(doc(fs,"chatModeration",user.uid),snap=>{chatMuted=snap.exists()&&snap.data().muted===true;updateChatComposerState();},()=>{});
+    if (user.email && profile.email !== user.email) await setDoc(profileRef, { email:user.email }, { merge:true });
+    saveMe({ id:user.uid, uid:user.uid, email:user.email || "", name:profile.name || "Player", username:profile.username || profile.name || "Player", photoURL:profile.photoURL || user.photoURL || "", owner:isOwner({uid:user.uid,email:user.email}) }); onSnapshot(doc(fs,"chatModeration",user.uid),snap=>{chatMuted=snap.exists()&&snap.data().muted===true;updateChatComposerState();},()=>{});
   } catch (e) { console.error("Profile sync failed", e); saveMe(null); }
 });
 const tag = id => "#" + id.slice(-4).toUpperCase();
@@ -106,17 +107,17 @@ window.doLogin = async () => {
       if (!reserve.committed) { const { deleteUser } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"); await deleteUser(cred.user); await signOut(auth); status.textContent = "এই ইউজারনেমটি আগে থেকেই নেওয়া হয়েছে। অন্য নাম দিন।"; return; }
       try {
         await updateProfile(cred.user, {displayName:username});
-        await setDoc(doc(fs,"users",cred.user.uid), {name:username, username, totalScore:0, bests:{}, photoURL:"", createdAt:serverTimestamp(), lastActiveAt:serverTimestamp()});
+        await setDoc(doc(fs,"users",cred.user.uid), {name:username, username, email:cred.user.email || email, totalScore:0, bests:{}, photoURL:"", createdAt:serverTimestamp(), lastActiveAt:serverTimestamp()});
       } catch (profileError) {
         try { await remove(ref(rtdb, `usernames/${key}`)); } catch {}
         try { const { deleteUser } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"); await deleteUser(cred.user); } catch {}
         throw profileError;
       }
-      me = {id:cred.user.uid,uid:cred.user.uid,email,name:username,username,photoURL:"",owner:isOwner(cred.user)}; saveMe(me); authMode="login"; closeModal("profileModal"); openProfile();
+      me = {id:cred.user.uid,uid:cred.user.uid,email,name:username,username,photoURL:"",owner:isOwner({uid:cred.user.uid,email:cred.user.email})}; saveMe(me); authMode="login"; closeModal("profileModal"); openProfile();
     } else {
       const cred = await signInWithEmailAndPassword(auth,email,password), profile = await getDoc(doc(fs,"users",cred.user.uid));
-      if (!profile.exists()) { let username=cleanName(cred.user.displayName || email.split("@")[0]).replace(/[^a-zA-Z0-9_.-]/g, "").slice(0,20); if(username.length<3) username=`Player${cred.user.uid.slice(0,5)}`; await setDoc(doc(fs,"users",cred.user.uid),{name:username,username,totalScore:0,bests:{},photoURL:cred.user.photoURL||"",createdAt:serverTimestamp(),lastActiveAt:serverTimestamp()}); }
-      const snap=await getDoc(doc(fs,"users",cred.user.uid)), d=snap.data()||{}; me={id:cred.user.uid,uid:cred.user.uid,email,name:d.name||cred.user.displayName||email.split("@")[0],username:d.username||d.name||"Player",photoURL:d.photoURL||cred.user.photoURL||"",owner:isOwner(cred.user)}; saveMe(me); closeModal("profileModal"); openProfile();
+      if (!profile.exists()) { let username=cleanName(cred.user.displayName || email.split("@")[0]).replace(/[^a-zA-Z0-9_.-]/g, "").slice(0,20); if(username.length<3) username=`Player${cred.user.uid.slice(0,5)}`; await setDoc(doc(fs,"users",cred.user.uid),{name:username,username,email:cred.user.email || email,totalScore:0,bests:{},photoURL:cred.user.photoURL||"",createdAt:serverTimestamp(),lastActiveAt:serverTimestamp()}); }
+      const snap=await getDoc(doc(fs,"users",cred.user.uid)), d=snap.data()||{}; me={id:cred.user.uid,uid:cred.user.uid,email,name:d.name||cred.user.displayName||email.split("@")[0],username:d.username||d.name||"Player",photoURL:d.photoURL||cred.user.photoURL||"",owner:isOwner({uid:cred.user.uid,email:cred.user.email})}; saveMe(me); closeModal("profileModal"); openProfile();
     }
   } catch (e) { console.error(e); const code=e.code||""; status.textContent = code.includes("email-already-in-use") ? "এই ইমেইলে অ্যাকাউন্ট আছে—লগইন করুন।" : code.includes("weak-password") ? "আরও শক্তিশালী পাসওয়ার্ড দিন।" : code.includes("invalid-credential") || code.includes("wrong-password") || code.includes("user-not-found") ? "ইমেইল বা পাসওয়ার্ড সঠিক নয়।" : code.includes("operation-not-allowed") ? "Firebase Console-এ Email/Password sign-in চালু করুন।" : "ব্যর্থ হয়েছে। Firebase Rules, Authentication সেটিংস ও ইন্টারনেট যাচাই করুন।"; }
 };
@@ -145,6 +146,7 @@ window.saveScore = async () => {
 onSnapshot(query(collection(fs, "users"), where("totalScore", ">", 0), orderBy("totalScore", "desc"), limit(100)),
   s => { lbDocs = s.docs.map(d => ({ id: d.id, ...d.data() })); const m = lbDocs.find(u => me && u.id === me.id); if (m) myBests = m.bests || {}; renderLB(); ready(); },
   () => ready());
+onSnapshot(query(collection(fs,"users"), where("email","==",ADMIN_EMAIL), limit(1)), s => { ownerProfile = s.empty ? null : {id:s.docs[0].id,...s.docs[0].data()}; renderLB(); }, e => console.warn("Owner profile lookup failed",e));
 onSnapshot(doc(fs, "config", "admin"), s => { adminInfo = s.exists() ? s.data() : null; renderLB(); });
 
 const nf = n => Number(n).toLocaleString("bn-BD");
@@ -155,21 +157,22 @@ const avatar = (u, big) => {
     ? `<img src="${esc(safeUrl(u.photoURL))}" alt="${esc(u.name || "Player")}" referrerpolicy="no-referrer" class="av" style="${style}" loading="lazy">`
     : `<div class="av avatar-color" style="${style};--avatar-hue:${avatarHue(u.id||u.uid||u.username||u.name)}deg">${esc((u.name || u.username || "?").trim().charAt(0).toUpperCase())}</div>`;
 };
+// Owner এর জন্য প্রিমিয়াম অ্যানিমেটেড SVG ফ্রেমসহ অ্যাভাটার (assets/owner-frame*.svg)
+const ownerAvatar = (u, size = 60, crown = true) => `<span class="owner-ring owner-wing${crown ? "" : " no-crown"}" style="--sz:${size}px"><span class="or-core">${avatar(u, false)}</span><img class="or-frame" src="assets/owner-frame${crown ? "" : "-sm"}.svg" alt="" aria-hidden="true" draggable="false"></span>`;
+// ১ম/২য়/৩য় র‍্যাঙ্কের জন্য গোল্ড/সিলভার/ব্রোঞ্জ অ্যানিমেটেড SVG ফ্রেম (assets/rank-1..3.svg)
+const rankAvatar = (u, rank, size = 46) => `<span class="owner-ring rank-ring rank-ring-${rank}" style="--sz:${size}px"><span class="or-core">${avatar(u, false)}</span><img class="or-frame" src="assets/rank-${rank}.svg" alt="" aria-hidden="true" draggable="false"></span>`;
 function renderLB() {
   const ab = $("adminBoard");
   if (!ab || !$("podium") || !$("leaderboardList")) return;
-  ab.innerHTML = adminInfo ? `<div class="admin-card"><div class="p-4 flex items-center gap-3">
-    ${adminInfo.photoURL && safeUrl(adminInfo.photoURL) ? `<img src="${esc(safeUrl(adminInfo.photoURL))}" referrerpolicy="no-referrer" class="av" style="width:56px;height:56px;margin:0">` : avatar({ name: adminInfo.displayName }, true)}
-    <div class="min-w-0 flex-1"><div class="flex items-center gap-2"><i class="fa-solid fa-crown text-amber-300"></i><span class="font-bold text-lg truncate bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-pink-300 to-cyan-300">${esc(adminInfo.displayName || "Admin")}</span></div>
-    <div class="text-[11px] text-slate-300 mt-0.5">ID: ${esc(String(adminInfo.uid || "").slice(0, 8))}…</div></div>
-    <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-pink-500 text-slate-950 tracking-wider">OWNER</span></div></div>` : "";
+  const ownerUser = ownerProfile;
+  ab.innerHTML = ownerUser ? `<div class="admin-card"><div class="p-4 flex items-center gap-4">${ownerAvatar(ownerUser,52)}<div class="min-w-0 flex-1"><div class="flex items-center gap-2"><i class="fa-solid fa-crown text-amber-300"></i><span class="font-bold text-lg truncate text-amber-200">${esc(ownerUser.name||ownerUser.username||"Owner")}</span></div><div class="text-[11px] text-slate-300 mt-0.5">নির্বাচিত Owner</div></div><span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-pink-500 text-slate-950 tracking-wider">OWNER</span></div></div>` : "";
   const top = lbDocs.slice(0, 3), order = [1, 0, 2], medal = ["🥇", "🥈", "🥉"];
   const emptyBoard = $("leaderboardEmpty"); if (emptyBoard) emptyBoard.classList.toggle("hidden", lbDocs.length > 0);
   $("podium").innerHTML = top.length ? order.filter(i => top[i]).map(i => { const u = top[i];
-    return `<div class="pod r${i + 1} rank-premium rank-${i+1}"><div class="text-2xl">${medal[i]}</div>${avatar(u)}<div class="text-xs font-bold truncate px-1">${esc(u.name)}${!!adminInfo && u.id === adminInfo.uid ? ` <span class="owner-inline">OWNER</span>` : ""}</div><div class="text-[10px] text-slate-400">${esc(tag(u.id))}</div><div class="text-sm font-bold text-amber-300 mt-1">${nf(u.totalScore)}</div></div>`; }).join("")
+    return `<div class="pod r${i + 1} rank-premium rank-${i+1}"><div class="text-2xl">${medal[i]}</div>${!!adminInfo && u.id === ownerProfile?.id ? ownerAvatar(u,42) : rankAvatar(u,i + 1,i === 0 ? 54 : 46)}<div class="text-xs font-bold truncate px-1">${esc(u.name)}${!!adminInfo && u.id === ownerProfile?.id ? ` <span class="owner-inline">OWNER</span>` : ""}</div><div class="text-[10px] text-slate-400">${esc(tag(u.id))}</div><div class="text-sm font-bold text-amber-300 mt-1">${nf(u.totalScore)}</div></div>`; }).join("")
     : `<p class="text-center text-slate-500 text-sm py-6 w-full">এখনো কেউ স্কোর দেয়নি। প্রথম হোন! 🚀</p>`;
   $("leaderboardList").innerHTML = lbDocs.slice(3).map((u, i) => `<div class="lb-row ${me && u.id === me.id ? "me" : ""}"><span class="w-8 text-center text-sm font-bold text-slate-400">${nf(i + 4)}</span>
-    ${avatar(u, false).replace('width:44px;height:44px;', 'width:34px;height:34px;').replace('margin:0 auto 4px', 'margin:0').replace('font-size:13px','font-size:13px')}<div class="flex-1 min-w-0"><div class="text-sm font-semibold truncate">${esc(u.name)}${!!adminInfo && u.id === adminInfo.uid ? ` <span class="owner-inline">OWNER</span>` : ""}</div><div class="text-[10px] text-slate-500">${esc(tag(u.id))}</div></div>
+    ${!!adminInfo && u.id === ownerProfile?.id ? ownerAvatar(u,28,false) : avatar(u, false).replace('width:44px;height:44px;', 'width:34px;height:34px;').replace('margin:0 auto 4px', 'margin:0').replace('font-size:13px','font-size:13px')}<div class="flex-1 min-w-0"><div class="text-sm font-semibold truncate">${esc(u.name)}${!!adminInfo && u.id === ownerProfile?.id ? ` <span class="owner-inline">OWNER</span>` : ""}</div><div class="text-[10px] text-slate-500">${esc(tag(u.id))}</div></div>
     <span class="text-sm font-bold text-amber-300">${nf(u.totalScore)}</span></div>`).join("");
 }
 
@@ -179,7 +182,7 @@ const chatEmojis = ["😀","😂","🥹","😍","😎","🔥","💜","❤️","�
 function chatAvatar(name, photo, uid) { return photo && safeUrl(photo) ? `<img class="chat-avatar" src="${esc(safeUrl(photo))}" alt="">` : `<span class="chat-avatar avatar-color" style="--avatar-hue:${avatarHue(uid||name)}deg">${esc((name||"U").trim().charAt(0).toUpperCase())}</span>`; }
 function renderChat(snapshot) {
   if (!chatBox) return; const rows = snapshot.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAt?.toMillis?.()||0)-(b.createdAt?.toMillis?.()||0));
-  chatBox.innerHTML = rows.map(m=>{ const owner=m.role!=="bot" && m.owner===true; const bot=m.role==="bot"; const mine=!!me && m.uid===me.id && !bot; const rank=lbDocs.findIndex(u=>u.id===m.uid); const rankClass=rank===0?"chat-rank-1":rank===1?"chat-rank-2":rank===2?"chat-rank-3":""; const identity=owner?`<span class="owner-glass-badge"><i class="fa-solid fa-crown"></i> OWNER</span>`:bot?`<span class="bot-badge">AUTO BOT</span>`:rank>=0&&rank<3?`<span class="rank-badge rank-badge-${rank+1}">#${rank+1}</span>`:""; return `<article class="chat-message ${mine?"chat-message-mine":"chat-message-other"} ${owner?"chat-owner":""} ${bot?"chat-bot":""} ${rankClass}">${mine?"":chatAvatar(m.username||m.name||(bot?"B":"U"),m.photoURL,m.uid)}<div class="chat-message-body"><div class="chat-message-head">${mine?"":`<strong>${esc(bot?"PlayZone Bot":m.username||m.name||"Player")}</strong>${identity}`}<time>${m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString("bn-BD",{hour:"2-digit",minute:"2-digit"}):"এখন"}</time></div><p>${esc(m.message||"")}</p></div></article>`; }).join(""); chatBox.scrollTop=chatBox.scrollHeight;
+  chatBox.innerHTML = rows.map(m=>{ const owner=m.role!=="bot" && !!adminInfo?.ownerUid && m.uid===ownerProfile?.id; const bot=m.role==="bot"; const mine=!!me && m.uid===me.id && !bot; const rank=lbDocs.findIndex(u=>u.id===m.uid); const rankClass=rank===0?"chat-rank-1":rank===1?"chat-rank-2":rank===2?"chat-rank-3":""; const identity=owner?`<span class="owner-glass-badge"><i class="fa-solid fa-crown"></i> OWNER</span>`:bot?`<span class="bot-badge">AUTO BOT</span>`:rank>=0&&rank<3?`<span class="rank-badge rank-badge-${rank+1}">#${rank+1}</span>`:""; return `<article class="chat-message ${mine?"chat-message-mine":"chat-message-other"} ${owner?"chat-owner":""} ${bot?"chat-bot":""} ${rankClass}">${mine?"":chatAvatar(m.username||m.name||(bot?"B":"U"),m.photoURL,m.uid)}<div class="chat-message-body"><div class="chat-message-head">${mine?"":`<strong>${esc(bot?"PlayZone Bot":m.username||m.name||"Player")}</strong>${identity}`}<time>${m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString("bn-BD",{hour:"2-digit",minute:"2-digit"}):"এখন"}</time></div><p>${esc(m.message||"")}</p></div></article>`; }).join(""); chatBox.scrollTop=chatBox.scrollHeight;
 }
 let chatDisabled = false, chatMuted = false;
 if (chatBox) onSnapshot(query(collection(fs,"globalChat"),orderBy("createdAt","desc"),limit(80)), snap=>renderChat(snap), err=>{console.warn("Chat unavailable",err);chatBox.innerHTML='<p class="chat-empty">চ্যাট লোড হয়নি। Firebase Rules আপডেট করুন।</p>';});
@@ -219,25 +222,43 @@ function renderGames(list) {
     grid.appendChild(c);
   });
 }
-let bannerItems = [], bannerIndex = 0, bannerTimer = null;
+let bannerItems = [], bannerIndex = 0, bannerTimer = null, bannerTouchStartX = 0;
+const BANNER_INTERVAL = 6000;
 function updateBannerVisibility() {
   const box = $("bannerContainer"); if (!box) return;
-  // Banners belong only to the Home/Games screen. Realtime banner updates must not
-  // make them reappear while the user is browsing Favorites or the Leaderboard.
   box.classList.toggle("hidden", activeSection !== "games" || bannerItems.length === 0);
 }
-function renderBannerSlide() {
+let bannerRenderToken = 0;
+async function renderBannerSlide() {
   const box = $("bannerContainer"); if (!box) return;
   if (!bannerItems.length) { box.innerHTML = ""; clearInterval(bannerTimer); updateBannerVisibility(); return; }
   bannerIndex = ((bannerIndex % bannerItems.length) + bannerItems.length) % bannerItems.length;
   const b = bannerItems[bannerIndex];
-  box.innerHTML = `<div class="banner-slide" aria-roledescription="slide"><img src="${esc(safeUrl(b.img))}" alt="${esc(b.title || "PlayZone banner")}" referrerpolicy="no-referrer"><div class="banner-shade"></div><div class="banner-caption"><span class="banner-kicker">PLAYZONE X • FEATURED</span><h2>${esc(b.title || "Featured Games")}</h2></div>${bannerItems.length > 1 ? `<button class="banner-arrow prev" aria-label="আগের ব্যানার"><i class="fa-solid fa-chevron-left"></i></button><button class="banner-arrow next" aria-label="পরের ব্যানার"><i class="fa-solid fa-chevron-right"></i></button><div class="banner-dots">${bannerItems.map((_,i)=>`<button aria-label="ব্যানার ${i+1}" class="banner-dot ${i===bannerIndex?"active":""}" data-slide="${i}"></button>`).join("")}</div>` : ""}</div>`;
+  // Preload/decode the next banner before replacing the current slide: prevents a black flash.
+  const token = ++bannerRenderToken;
+  const preload = new Image(); preload.src = safeUrl(b.img);
+  try { if (preload.decode) await preload.decode(); else await new Promise((resolve,reject)=>{preload.onload=resolve;preload.onerror=reject;}); } catch { /* retain existing slide if image cannot load */ }
+  if (token !== bannerRenderToken) return;
+  box.innerHTML = `<div class="banner-slide" role="region" aria-label="PLAYZONE X featured banners" aria-roledescription="carousel">
+    <img class="banner-image" src="${esc(safeUrl(b.img))}" alt="${esc(b.title || "PlayZone featured banner")}" referrerpolicy="no-referrer">
+    <div class="banner-shade"></div><div class="banner-glow"></div>
+    <div class="banner-topline"><span class="banner-brand"><span class="banner-brand-dot"></span> PLAYZONE X <i class="fa-solid fa-sparkles"></i> FEATURED</span></div>
+    <div class="banner-caption"><span class="banner-kicker">DISCOVER • PLAY • REPEAT</span><h2>${esc(b.title || "Explore Your Next Game")}</h2><p>তোমার পরবর্তী গেমিং অ্যাডভেঞ্চার শুরু হোক এখান থেকেই।</p></div>
+    ${bannerItems.length > 1 ? `<div class="banner-controls"><button class="banner-arrow prev" aria-label="আগের ব্যানার"><i class="fa-solid fa-arrow-left"></i></button><button class="banner-arrow next" aria-label="পরের ব্যানার"><i class="fa-solid fa-arrow-right"></i></button></div><div class="banner-navigation"><div class="banner-dots">${bannerItems.map((_,i)=>`<button aria-label="ব্যানার ${i+1}" title="ব্যানার ${i+1}" class="banner-dot ${i===bannerIndex?"active":""}" data-slide="${i}"></button>`).join("")}</div><span class="banner-hint">SWIPE TO EXPLORE</span></div><div class="banner-progress"><span></span></div>` : ""}
+  </div>`;
+  const slide = box.querySelector(".banner-slide");
   box.querySelector(".prev")?.addEventListener("click",()=>{bannerIndex--;renderBannerSlide();restartBannerTimer();});
   box.querySelector(".next")?.addEventListener("click",()=>{bannerIndex++;renderBannerSlide();restartBannerTimer();});
   box.querySelectorAll("[data-slide]").forEach(btn=>btn.addEventListener("click",()=>{bannerIndex=Number(btn.dataset.slide);renderBannerSlide();restartBannerTimer();}));
+  slide?.addEventListener("mouseenter",()=>clearInterval(bannerTimer));
+  slide?.addEventListener("mouseleave",restartBannerTimer);
+  slide?.addEventListener("touchstart",e=>{bannerTouchStartX=e.changedTouches[0].clientX;},{passive:true});
+  slide?.addEventListener("touchend",e=>{const dx=e.changedTouches[0].clientX-bannerTouchStartX;if(Math.abs(dx)>45&&bannerItems.length>1){bannerIndex+=dx<0?1:-1;renderBannerSlide();restartBannerTimer();}},{passive:true});
   updateBannerVisibility();
 }
-function restartBannerTimer(){clearInterval(bannerTimer);if(bannerItems.length>1)bannerTimer=setInterval(()=>{bannerIndex=(bannerIndex+1)%bannerItems.length;renderBannerSlide();},5000);}
+function restartBannerTimer(){clearInterval(bannerTimer);if(bannerItems.length>1&&!document.hidden&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches){const bar=document.querySelector(".banner-progress span");if(bar){bar.style.animation="none";void bar.offsetWidth;bar.style.animation=`bannerProgress ${BANNER_INTERVAL}ms linear forwards`;}bannerTimer=setInterval(()=>{bannerIndex=(bannerIndex+1)%bannerItems.length;renderBannerSlide();restartBannerTimer();},BANNER_INTERVAL);}}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)clearInterval(bannerTimer);else restartBannerTimer();});
+
 onValue(ref(rtdb, "banners"), s => {
   const d = s.val(); bannerItems = d ? Object.values(d).filter(b => safeUrl(b.img)) : []; bannerIndex = 0;
   renderBannerSlide(); restartBannerTimer();

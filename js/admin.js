@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDocs, collection, writeBatch, serverTimestamp, onSnapshot, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection, writeBatch, serverTimestamp, onSnapshot, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { firebaseConfig, ADMIN_EMAIL, IMGBB_API_KEY, safeUrl } from "./config.js";
 
 const app = initializeApp(firebaseConfig), db = getDatabase(app), fs = getFirestore(app), auth = getAuth(app);
@@ -123,7 +123,7 @@ const setBusy = b => { busy = b; $("loginBtn").classList.toggle("loading", b); }
 
 // Firebase সেশন থেকে অটো-লগইন / লগআউট হ্যান্ডেল
 async function gate(user) {
-  if (busy) return;                       // ম্যানুয়াল লগইনের সময় handleLogin নিজেই দেখবে
+  if (busy) return;
   if (!user) return show(false);
   if (!isAdminEmail(user.email)) { await signOut(auth); return show(false, "এই অ্যাকাউন্টের অ্যাডমিন অ্যাক্সেস নেই।"); }
   enter(user);
@@ -132,7 +132,18 @@ function enter(user) {
   show(true);
   setAdminSection("adminOverview");
   startChatAdmin();
-  setDoc(doc(fs, "config", "admin"), { uid: user.uid, displayName: user.displayName || "Admin", photoURL: user.photoURL || "", updatedAt: serverTimestamp() }).catch(console.error);
+  loadOwnerProfile();
+}
+
+// Owner is always the Firebase account matching ADMIN_EMAIL. No manual selection.
+async function loadOwnerProfile(){
+  const user=auth.currentUser;
+  const info=$("ownerCurrentInfo");
+  if(!user || !isAdminEmail(user.email)){ if(info) info.textContent="Owner তথ্য পাওয়া যায়নি।"; return; }
+  try {
+    const snap=await getDoc(doc(fs,"users",user.uid));
+    if(info) info.textContent=snap.exists() ? `বর্তমান Owner: ${snap.data().name || snap.data().username || user.email} · ${user.email}` : `Owner Gmail: ${user.email} (ইউজার প্রোফাইল এখনো তৈরি হয়নি)`;
+  } catch(e){ console.error(e); if(info) info.textContent=`Owner Gmail: ${user.email}`; }
 }
 
 // Global chat moderation controls (admin-only)
