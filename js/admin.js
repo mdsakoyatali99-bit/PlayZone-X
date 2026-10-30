@@ -15,6 +15,20 @@ const html = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&l
 const dateValue = v => { if (!v) return null; if (typeof v.toDate === "function") return v.toDate(); const d = new Date(v); return Number.isNaN(d.getTime()) ? null : d; };
 const dateLabel = v => { const d = dateValue(v); return d ? d.toLocaleDateString("bn-BD", { day:"2-digit", month:"short", year:"numeric" }) : "—"; };
 const points = v => Math.max(0, Math.floor(Number(v) || 0));
+let noticeTimer;
+function adminNotice(type, title, message) {
+  const modal = $("adminNotice"); if (!modal) { alert(message); return; }
+  const success = type === "success";
+  $("adminNoticeIcon").innerHTML = success ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-triangle-exclamation"></i>';
+  $("adminNoticeIcon").className = `admin-notice-icon ${success ? "is-success" : "is-error"}`;
+  $("adminNoticeTitle").textContent = title; $("adminNoticeMessage").textContent = message;
+  modal.classList.add("show"); modal.setAttribute("aria-hidden", "false");
+  clearTimeout(noticeTimer); noticeTimer = setTimeout(closeAdminNotice, 4200);
+}
+function closeAdminNotice() { const modal = $("adminNotice"); if (!modal) return; modal.classList.remove("show"); modal.setAttribute("aria-hidden", "true"); clearTimeout(noticeTimer); }
+$("adminNoticeClose")?.addEventListener("click", closeAdminNotice);
+$("adminNotice")?.querySelector(".admin-notice-backdrop")?.addEventListener("click", closeAdminNotice);
+
 function renderUsers() {
   const box = $("adminUsersList"); if (!box) return;
   const q = norm($("userSearch")?.value || ""), sort = $("userSort")?.value || "score";
@@ -234,10 +248,48 @@ $("addGameForm").addEventListener("submit", async e => {
   await push(ref(db, "games"), { title: $("adminGameTitle").value.trim(), category: $("adminGameCategory").value, img: safeUrl(img), url, timestamp: Date.now() });
   alert("গেমটি সফলভাবে সেভ হয়েছে!"); e.target.reset();
 });
+const bannerFileInput = $("bannerImageFile");
+let bannerPreviewObjectUrl = "";
+function clearBannerSelection() {
+  if (bannerPreviewObjectUrl) URL.revokeObjectURL(bannerPreviewObjectUrl);
+  bannerPreviewObjectUrl = ""; bannerFileInput.value = "";
+  $("bannerImagePreview").classList.add("hidden"); $("bannerPreviewImg").removeAttribute("src");
+}
+bannerFileInput?.addEventListener("change", () => {
+  const file = bannerFileInput.files?.[0]; if (!file) return;
+  if (!file.type.startsWith("image/")) { clearBannerSelection(); adminNotice("error", "ছবির ফরম্যাট সঠিক নয়", "অনুগ্রহ করে PNG, JPG, WEBP অথবা GIF ছবি নির্বাচন করুন।"); return; }
+  if (file.size > 32 * 1024 * 1024) { clearBannerSelection(); adminNotice("error", "ছবিটি অনেক বড়", "সর্বোচ্চ 32 MB আকারের ছবি আপলোড করতে পারবেন।"); return; }
+  if (bannerPreviewObjectUrl) URL.revokeObjectURL(bannerPreviewObjectUrl);
+  bannerPreviewObjectUrl = URL.createObjectURL(file); $("bannerPreviewImg").src = bannerPreviewObjectUrl;
+  $("bannerFileName").textContent = file.name; $("bannerFileMeta").textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB · আপলোডের জন্য প্রস্তুত`;
+  $("bannerImagePreview").classList.remove("hidden");
+});
+$("clearBannerImage")?.addEventListener("click", clearBannerSelection);
 $("addBannerForm").addEventListener("submit", async e => {
-  e.preventDefault(); const img = safeUrl($("bannerImg").value); if (!img) return alert("সঠিক ইমেজ URL দিন");
-  await push(ref(db, "banners"), { title: $("bannerTitle").value.trim(), img });
-  alert("ব্যানার যুক্ত হয়েছে!"); e.target.reset();
+  e.preventDefault();
+  const title = $("bannerTitle").value.trim(), file = bannerFileInput?.files?.[0];
+  let img = safeUrl($("bannerImg").value);
+  if (!title) { adminNotice("error", "টাইটেল প্রয়োজন", "ব্যানারের একটি নাম লিখুন।"); return; }
+  if (!file && !img) { adminNotice("error", "ব্যানার ছবি নির্বাচন করুন", "গ্যালারি থেকে একটি ছবি বেছে নিন অথবা একটি বৈধ HTTPS ইমেজ URL দিন।"); return; }
+  const submit = $("addBannerSubmit"), original = submit.innerHTML;
+  submit.disabled = true; submit.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> ছবি আপলোড হচ্ছে…';
+  try {
+    if (file) {
+      const fd = new FormData(); fd.append("image", file);
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${encodeURIComponent(IMGBB_API_KEY)}`, { method: "POST", body: fd });
+      const result = await response.json();
+      if (!response.ok || !result.success || !result.data?.url) throw new Error(result.error?.message || "ইমেজ হোস্টিং সার্ভার ছবিটি গ্রহণ করেনি।");
+      img = safeUrl(result.data.url);
+    }
+    if (!img) throw new Error("ইমেজ থেকে বৈধ লিংক তৈরি করা যায়নি।");
+    submit.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> ব্যানার সেভ হচ্ছে…';
+    await push(ref(db, "banners"), { title, img, createdAt: Date.now(), source: file ? "gallery" : "url" });
+    e.target.reset(); clearBannerSelection();
+    adminNotice("success", "ব্যানার সফলভাবে যুক্ত হয়েছে!", "আপনার ব্যানার আপলোড ও সেভ হয়েছে। এখন ওয়েবসাইটের ব্যানার সেকশনে এটি দেখা যাবে।");
+  } catch (err) {
+    console.error("Banner upload failed:", err);
+    adminNotice("error", "ব্যানার যুক্ত করা যায়নি", err.message || "ইন্টারনেট, ImgBB API key এবং Firebase সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।");
+  } finally { submit.disabled = false; submit.innerHTML = original; }
 });
 $("resetLeaderboardBtn").addEventListener("click", async () => {
   if (!confirm("সব ইউজারের স্কোর শূন্য করতে চান?")) return;
@@ -271,4 +323,4 @@ if (adminMenuToggle && adminQuickMenu) {
     if (!adminQuickMenu.contains(event.target) && !adminMenuToggle.contains(event.target)) closeAdminMenu();
   });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeAdminMenu(); });
-  }
+}
