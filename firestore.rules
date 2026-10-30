@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'password'
+        && request.auth.token.email == 'mdsakoyatali99@gmail.com';
+    }
+    function okName(n) { return n is string && n.size() >= 2 && n.size() <= 20; }
+    match /users/{uid} {
+      allow read: if true;
+      allow create: if isAdmin() || (request.auth != null && request.auth.uid == uid
+        && okName(request.resource.data.name)
+        && request.resource.data.username is string
+        && request.resource.data.username.size() >= 3 && request.resource.data.username.size() <= 20
+        && request.resource.data.totalScore == 0
+        && request.resource.data.keys().hasOnly(['name','username','totalScore','bests','photoURL','createdAt','lastActiveAt']));
+      allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid
+        && okName(request.resource.data.name)
+        && request.resource.data.totalScore is int && request.resource.data.totalScore >= resource.data.totalScore
+        && request.resource.data.totalScore <= 100000000
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','totalScore','bests','lastActiveAt','lastPlayedGame','photoURL'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['photoURL']) || (request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 2048 && request.resource.data.photoURL.matches('^https://.*'))));
+      allow delete: if isAdmin();
+    }
+    match /globalChat/{messageId} {
+      allow read: if true;
+      allow create: if request.auth != null && (
+        (request.resource.data.role == 'user'
+          && (!exists(/databases/$(database)/documents/chatSettings/global) || get(/databases/$(database)/documents/chatSettings/global).data.enabled != false)
+          && (!exists(/databases/$(database)/documents/chatModeration/$(request.auth.uid)) || get(/databases/$(database)/documents/chatModeration/$(request.auth.uid)).data.muted != true)
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.username is string
+          && request.resource.data.username.size() >= 1 && request.resource.data.username.size() <= 30
+          && request.resource.data.message is string
+          && request.resource.data.message.size() >= 1 && request.resource.data.message.size() <= 400
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.keys().hasOnly(['uid','username','name','owner','photoURL','message','role','createdAt'])
+          && request.resource.data.owner == (request.auth.token.email == 'mdsakoyatali99@gmail.com'))
+        || (messageId.matches('^bot_[0-9]+$')
+          && request.resource.data.role == 'bot'
+          && request.resource.data.uid == 'system'
+          && request.resource.data.username == 'PlayZone Bot'
+          && request.resource.data.message in ['🎮 PlayZone X-এ সবাইকে স্বাগতম! ভদ্রভাবে চ্যাট করুন।','🏆 আজকের চ্যালেঞ্জ: খেলুন, পয়েন্ট অর্জন করুন, লিডারবোর্ডে উঠুন!','💜 আপনার প্রিয় গেম কোনটি? চ্যাটে জানান!','✨ নতুন বন্ধুদের স্বাগতম—গেমিং মজা উপভোগ করুন!']
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.keys().hasOnly(['uid','username','name','message','role','createdAt'])
+          && (!exists(/databases/$(database)/documents/chatSettings/global) || get(/databases/$(database)/documents/chatSettings/global).data.botEnabled != false))
+      );
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    match /chatModeration/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow create, update, delete: if isAdmin();
+    }
+    match /chatSettings/{settingId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() && settingId == 'global';
+    }
+    match /config/admin { allow read: if true; allow write: if isAdmin(); }
+  }
+}

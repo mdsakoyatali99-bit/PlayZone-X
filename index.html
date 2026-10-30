@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1020">
+    <meta name="description" content="PlayZone X — আপনার প্রিয় অনলাইন গেমিং কমিউনিটি।">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/pwa-icon-192.png">
+    <title>PlayZone X</title>
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-['Hind_Siliguri'] min-h-screen flex flex-col select-none">
+
+    <div id="loader"><svg viewBox="0 0 120 120"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a855f7"/><stop offset=".55" stop-color="#ec4899"/><stop offset="1" stop-color="#fbbf24"/></linearGradient></defs><polygon class="l-hex" points="60,6 107,33 107,87 60,114 13,87 13,33" fill="#0b1020" stroke="url(#lg)" stroke-width="5" stroke-linejoin="round"/><path class="l-v" d="M34 42 L60 90 L86 42" fill="none" stroke="url(#lg)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><polygon class="l-play" points="52,28 52,50 70,39" fill="#fbbf24"/></svg><div class="l-txt">PLAYZONE X</div><div class="l-bar"><i></i></div></div>
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-slate-900/80 border-b border-slate-800/80 px-4 py-3 shadow-xl">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="window.location.href='index.html'">
+                <img src="assets/logo.svg" alt="logo" class="w-10 h-10">
+                <span class="text-xl font-bold tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-300 to-amber-300">PLAYZONE X</span>
+            </div>
+
+            <!-- Search -->
+            <div class="hidden sm:flex items-center relative w-1/3">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400"></i>
+                <input type="text" id="searchInput" placeholder="খেলার নাম খুঁজুন..." class="w-full pl-9 pr-4 py-2 bg-slate-800/60 border border-slate-700/60 rounded-full text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-all">
+            </div>
+
+
+        </div>
+    </header>
+
+    <!-- Main Section -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+        <!-- Multiple Banners Container -->
+        <div id="bannerContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"></div>
+
+        <!-- Category Filters -->
+        <div class="flex items-center space-x-2 overflow-x-auto pb-4 scrollbar-none mb-6">
+            <button onclick="filterCategory('All')" class="category-btn active px-5 py-2 rounded-xl text-sm font-semibold border border-slate-700 bg-slate-800/80 text-slate-200 hover:border-purple-500 transition-all whitespace-nowrap">সব গেম</button>
+            <button onclick="filterCategory('Action')" class="category-btn px-5 py-2 rounded-xl text-sm font-semibold border border-slate-700 bg-slate-800/80 text-slate-200 hover:border-purple-500 transition-all whitespace-nowrap">অ্যাকশন</button>
+            <button onclick="filterCategory('Arcade')" class="category-btn px-5 py-2 rounded-xl text-sm font-semibold border border-slate-700 bg-slate-800/80 text-slate-200 hover:border-purple-500 transition-all whitespace-nowrap">আর্কেড</button>
+            <button onclick="filterCategory('Puzzle')" class="category-btn px-5 py-2 rounded-xl text-sm font-semibold border border-slate-700 bg-slate-800/80 text-slate-200 hover:border-purple-500 transition-all whitespace-nowrap">পাজল</button>
+            <button onclick="filterCategory('Racing')" class="category-btn px-5 py-2 rounded-xl text-sm font-semibold border border-slate-700 bg-slate-800/80 text-slate-200 hover:border-purple-500 transition-all whitespace-nowrap">রেসিং</button>
+        </div>
+
+        <!-- Games Grid -->
+        <section id="favoritesSection" class="hidden mb-8"><h2 class="text-xl font-bold mb-4"><i class="fa-solid fa-heart text-pink-400"></i> আমার প্রিয় গেম</h2><div id="favoritesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div></section>
+        <section id="gamesSection"><div id="gamesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div></section>
+        <section id="chatSection" class="hidden chat-page">
+          <div class="chat-header"><div><p class="panel-eyebrow">PLAYZONE X COMMUNITY</p><h1>💬 গ্লোবাল চ্যাট</h1><p>সব খেলোয়াড়ের সঙ্গে কথা বলুন, ইমোজি ব্যবহার করুন এবং গেমিং কমিউনিটিতে যুক্ত থাকুন।</p></div><span class="chat-live"><i></i> LIVE CHAT</span></div>
+          <div id="chatMessages" class="chat-messages" aria-live="polite"><p class="chat-empty">চ্যাট লোড হচ্ছে…</p></div>
+          <form class="chat-composer" onsubmit="sendChatMessage(event)"><button type="button" class="emoji-trigger" onclick="toggleEmojiPicker()" aria-label="ইমোজি যোগ করুন">😊</button><textarea id="chatInput" maxlength="400" rows="1" placeholder="আপনার মেসেজ লিখুন…" aria-label="চ্যাট মেসেজ"></textarea><button type="submit" class="chat-send" aria-label="পাঠান"><i class="fa-solid fa-paper-plane"></i></button><div id="emojiPicker" class="emoji-picker hidden" aria-label="ইমোজি বাছাই"></div></form>
+          <p id="chatStatus" class="chat-footnote" aria-live="polite">ব্যক্তিগত তথ্য, পাসওয়ার্ড বা অনুপযুক্ত মেসেজ শেয়ার করবেন না।</p>
+        </section>
+
+        <section id="leaderboardSection" class="hidden leaderboard-page">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6"><div><p class="text-xs uppercase tracking-[.25em] text-amber-300 font-bold">PLAYZONE X • RANKING</p><h1 class="text-3xl sm:text-4xl font-extrabold mt-2">🏆 লিডারবোর্ড</h1><p class="text-slate-400 mt-2">সর্বোচ্চ পয়েন্ট অর্জনকারী শীর্ষ ১০০ জন খেলোয়াড়</p></div><div class="rounded-2xl border border-amber-400/20 bg-amber-400/5 px-4 py-3"><div class="text-xs text-slate-400">রিয়েল-টাইম র‍্যাঙ্কিং</div><div class="text-xl font-bold text-amber-300">TOP 100</div></div></div>
+          <div id="adminBoard" class="mb-5"></div><div id="podium" class="podium mb-6"></div><div id="leaderboardList" class="space-y-2"></div>
+          <div id="leaderboardEmpty" class="hidden text-center text-slate-400 py-8">এখনো কোনো পয়েন্ট অর্জনকারী খেলোয়াড় নেই।</div>
+        </section>
+    </main>
+
+    <!-- Premium bottom navigation -->
+    <nav class="bottom-nav" aria-label="প্রধান মেনু">
+      <button class="bottom-nav-item active" onclick="showSection('games',this)"><i class="fa-solid fa-gamepad"></i><span>গেম</span></button>
+      <button class="bottom-nav-item" onclick="showSection('favorites',this)"><i class="fa-solid fa-heart"></i><span>প্রিয় গেম</span></button>
+      <button class="bottom-nav-item" onclick="showSection('leaderboard',this)"><i class="fa-solid fa-trophy"></i><span>লিডারবোর্ড</span></button>
+      <button class="bottom-nav-item" onclick="showSection('chat',this)"><i class="fa-solid fa-comments"></i><span>চ্যাট</span></button>
+      <button class="bottom-nav-item" onclick="openProfile()"><i class="fa-solid fa-user"></i><span>প্রোফাইল</span></button>
+    </nav>
+    <button id="pwaInstallButton" class="pwa-install-fab" type="button" aria-label="PlayZone X অ্যাপ ইনস্টল করুন" title="অ্যাপ ইনস্টল করুন"><i class="fa-solid fa-download"></i><span>অ্যাপ ইনস্টল</span></button>
+    <!-- Full-viewport game surface: no site branding over gameplay -->
+    <div id="gameModal" class="game-fullscreen hidden" aria-label="গেম প্লেয়ার">
+      <iframe id="gameIframe" title="Game" class="game-frame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-pointer-lock" allow="fullscreen; gamepad; autoplay; clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+
+    <!-- Login / Profile Modal -->
+    <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden p-4">
+        <div class="glass-modal w-full max-w-sm rounded-3xl border border-purple-500/30 p-6 shadow-2xl relative">
+            <button onclick="closeModal('profileModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <div id="profileBody"></div>
+        </div>
+    </div>
+
+    <!-- Score Modal -->
+    <div id="scoreModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md hidden p-4">
+        <div class="glass-modal w-full max-w-xs rounded-3xl border border-purple-500/30 p-6 shadow-2xl text-center">
+            <h3 class="font-bold text-lg mb-1">স্কোর সাবমিট</h3><p id="scoreGame" class="text-xs text-slate-400 mb-3"></p>
+            <input id="scoreInput" type="number" min="0" inputmode="numeric" placeholder="আপনার স্কোর" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-center text-white focus:outline-none focus:border-purple-500">
+            <div id="scoreMsg" class="text-xs text-red-400 mt-2 min-h-[1rem]"></div>
+            <div class="flex gap-2 mt-3"><button onclick="closeModal('scoreModal')" class="flex-1 bg-slate-800 rounded-xl py-2 text-sm">বাতিল</button><button onclick="saveScore()" class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl py-2 text-sm font-semibold">সাবমিট</button></div>
+        </div>
+    </div>
+
+    <script src="js/security.js"></script>
+    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/pwa.js"></script>
+</body>
+</html>

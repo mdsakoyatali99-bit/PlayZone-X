@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayZone X — Admin Control Center</title>
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-['Hind_Siliguri'] min-h-screen flex flex-col">
+
+    <!-- ===== Admin Login Screen ===== -->
+    <main id="adminAuthBox" class="login-screen">
+        <div class="aurora"><i></i><i></i><i></i></div>
+        <div class="grid-bg"></div>
+
+        <section class="login-wrap">
+            <div class="login-card" id="loginCard">
+                <div class="login-badge">
+                    <svg viewBox="0 0 120 120" aria-hidden="true">
+                        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a855f7"/><stop offset=".55" stop-color="#ec4899"/><stop offset="1" stop-color="#fbbf24"/></linearGradient></defs>
+                        <polygon points="60,6 106,33 106,87 60,114 14,87 14,33" fill="none" stroke="url(#lg)" stroke-width="4" stroke-linejoin="round"/>
+                        <path d="M38 52 L60 82 L82 52" fill="none" stroke="url(#lg)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polygon points="54,28 54,46 70,37" fill="#fbbf24"/>
+                    </svg>
+                    <span class="badge-ring"></span>
+                </div>
+
+                <p class="login-eyebrow">VIRAL GAMES &bull; CONTROL CENTER</p>
+                <h1 class="login-title">অ্যাডমিন <span>লগইন</span></h1>
+                <p class="login-sub">শুধুমাত্র অনুমোদিত অ্যাডমিনের জন্য সুরক্ষিত এলাকা</p>
+
+                <form id="loginForm" class="login-form" autocomplete="on" novalidate>
+                    <div class="field">
+                        <input type="email" id="adminEmail" name="email" placeholder=" " autocomplete="username" required>
+                        <label for="adminEmail">অ্যাডমিন জিমেইল</label>
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                    <div class="field">
+                        <input type="password" id="adminPass" name="password" placeholder=" " autocomplete="current-password" required>
+                        <label for="adminPass">অ্যাডমিন পাসওয়ার্ড</label>
+                        <i class="fa-solid fa-key"></i>
+                        <button type="button" id="togglePass" class="eye" aria-label="পাসওয়ার্ড দেখুন"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+
+                    <ol class="verify-steps" id="verifySteps">
+                        <li id="stepCode"><span class="dot"><i class="fa-solid fa-code"></i></span><span>অ্যাপ কোড ভেরিফিকেশন</span><em></em></li>
+                        <li id="stepAuth"><span class="dot"><i class="fa-solid fa-fire"></i></span><span>ফায়ারবেস অথেন্টিকেশন</span><em></em></li>
+                    </ol>
+
+                    <div id="adminAuthStatus" class="login-error hidden" role="alert"></div>
+
+                    <button type="submit" id="loginBtn" class="login-btn">
+                        <span class="btn-label"><i class="fa-solid fa-lock-open"></i> নিরাপদে প্রবেশ করুন</span>
+                        <span class="btn-spin"></span>
+                    </button>
+                </form>
+
+                <div class="login-foot">
+                    <span><i class="fa-solid fa-shield-halved"></i> এনক্রিপ্টেড সংযোগ</span>
+                    <a href="index.html"><i class="fa-solid fa-arrow-left"></i> ওয়েবসাইটে ফিরুন</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== Dashboard ===== -->
+    <div id="adminWrap" class="hidden admin-shell w-full">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6 gap-3">
+            <div><p class="admin-kicker">PLAYZONE X / CONTROL CENTER</p><h2 class="admin-main-title"><i class="fa-solid fa-shield-halved"></i> Admin Dashboard</h2><p class="admin-muted">আপনার গেমিং প্ল্যাটফর্মের সম্পূর্ণ কন্ট্রোল এক জায়গায়</p></div>
+            <div class="flex items-center gap-2 admin-top-actions">
+                <button type="button" id="adminMenuToggle" class="admin-menu-toggle" aria-label="অ্যাডমিন সেকশন মেনু খুলুন" aria-expanded="false"><i class="fa-solid fa-ellipsis-vertical"></i><span>মেনু</span></button>
+                <nav id="adminQuickMenu" class="admin-quick-menu hidden" aria-label="অ্যাডমিন সেকশন">
+                  <div class="menu-group-label">ওভারভিউ</div>
+                  <a href="#adminOverview" data-admin-section="adminOverview"><i class="fa-solid fa-chart-pie"></i> ড্যাশবোর্ড ও স্ট্যাটস</a>
+                  <div class="menu-group-label">কমিউনিটি</div>
+                  <a href="#adminUsers" data-admin-section="adminUsers"><i class="fa-solid fa-users"></i> ইউজার ম্যানেজমেন্ট</a>
+                  <a href="#adminChat" data-admin-section="adminChat"><i class="fa-solid fa-comments"></i> গ্লোবাল চ্যাট কন্ট্রোল</a>
+                  <div class="menu-group-label">গেম লাইব্রেরি</div>
+                  <a href="#adminAddGame" data-admin-section="adminAddGame"><i class="fa-solid fa-circle-plus"></i> নতুন গেম যুক্ত করুন</a>
+                  <a href="#adminGames" data-admin-section="adminGames"><i class="fa-solid fa-gamepad"></i> গেম ম্যানেজমেন্ট</a>
+                  <div class="menu-group-label">ব্যানার ও সেটিংস</div>
+                  <a href="#adminBanners" data-admin-section="adminBanners"><i class="fa-solid fa-images"></i> ব্যানার ম্যানেজমেন্ট</a>
+                  <a href="#adminAddBanner" data-admin-section="adminAddBanner"><i class="fa-solid fa-image"></i> নতুন ব্যানার যুক্ত করুন</a>
+                  <a href="#adminSystem" data-admin-section="adminSystem"><i class="fa-solid fa-sliders"></i> সিস্টেম কন্ট্রোল</a>
+                </nav>
+                <a href="index.html" class="bg-slate-800 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg text-sm hover:bg-slate-700 transition-all">ওয়েবসাইট</a>
+                <button id="logoutBtn" class="bg-red-600/20 text-red-300 border border-red-500/40 px-3 py-1.5 rounded-lg text-sm hover:bg-red-600/30 transition-all"><i class="fa-solid fa-right-from-bracket"></i> লগআউট</button>
+            </div>
+        </div>
+
+        <div id="adminSectionNotice" class="admin-section-notice" aria-live="polite"><i class="fa-solid fa-chart-pie"></i><span>ড্যাশবোর্ড ও স্ট্যাটস</span><small>মেনু থেকে একটি বিভাগ নির্বাচন করুন</small></div>
+
+        <!-- Admin Dashboard Controls -->
+        <div id="adminDashboard" class="hidden admin-dashboard">
+            <section id="adminOverview" class="admin-stats" aria-label="User statistics">
+              <article class="stat-card"><span class="stat-icon violet"><i class="fa-solid fa-users"></i></span><div><p>মোট ইউজার</p><strong id="statTotalUsers">—</strong><small>সর্বমোট নিবন্ধিত প্রোফাইল</small></div></article>
+              <article class="stat-card"><span class="stat-icon cyan"><i class="fa-solid fa-user-plus"></i></span><div><p>আজকের নতুন ইউজার</p><strong id="statTodayUsers">—</strong><small id="statTodayDate">আজ</small></div></article>
+              <article class="stat-card"><span class="stat-icon amber"><i class="fa-solid fa-trophy"></i></span><div><p>লিডারবোর্ডে স্কোর</p><strong id="statTotalScore">—</strong><small>সব ইউজারের মোট পয়েন্ট</small></div></article>
+              <article class="stat-card"><span class="stat-icon green"><i class="fa-solid fa-gamepad"></i></span><div><p>মোট গেম</p><strong id="statTotalGames">—</strong><small>লাইব্রেরিতে যুক্ত গেম</small></div></article>
+            </section>
+            <section id="adminUsers" class="admin-panel user-panel">
+              <div class="panel-heading"><div><p class="panel-eyebrow">COMMUNITY MANAGEMENT</p><h3><i class="fa-solid fa-users-gear"></i> ইউজার ম্যানেজমেন্ট</h3><p class="admin-muted">প্রোফাইল, ইউজার আইডি, পয়েন্ট ও লিডারবোর্ড কন্ট্রোল করুন</p></div><span class="live-pill"><i></i> LIVE DATA</span></div>
+              <div class="user-tools"><label class="user-search"><i class="fa-solid fa-magnifying-glass"></i><input id="userSearch" type="search" placeholder="নাম বা ইউজার আইডি দিয়ে খুঁজুন…"></label><select id="userSort" class="admin-select" aria-label="ইউজার সাজান"><option value="score">সর্বোচ্চ পয়েন্ট</option><option value="newest">নতুন ইউজার</option><option value="name">নাম অনুযায়ী</option></select><span id="userCountLabel" class="user-count">লোড হচ্ছে…</span></div>
+              <div class="table-wrap"><table class="users-table"><thead><tr><th>ইউজার</th><th>ইউজার আইডি</th><th>মোট পয়েন্ট</th><th>যোগ দিয়েছেন</th><th>সর্বশেষ গেম</th><th>অ্যাকশন</th></tr></thead><tbody id="adminUsersList"><tr><td colspan="6" class="table-empty">ইউজার ডেটা লোড হচ্ছে…</td></tr></tbody></table></div>
+              <div class="user-panel-foot"><span>Firebase Firestore থেকে লাইভ ডেটা</span><span id="userPaginationInfo"></span></div>
+            </section>
+            <section id="adminChat" class="admin-panel" style="background:rgba(15,23,42,.92);border:1px solid #334155;border-radius:20px;padding:20px;margin:22px 0;">
+              <div class="panel-heading"><div><p class="panel-eyebrow">COMMUNITY MODERATION</p><h3><i class="fa-solid fa-comments"></i> গ্লোবাল চ্যাট কন্ট্রোল</h3><p class="admin-muted">চ্যাট চালু/বন্ধ, মেসেজ মুছে ফেলা এবং ইউজার মিউট/আনমিউট করুন।</p></div><span id="chatAdminStatus" class="live-pill">LIVE CHAT</span></div>
+              <div class="flex flex-wrap gap-2 my-4"><button id="chatEnableBtn" class="primary-btn">চ্যাট চালু</button><button id="chatDisableBtn" class="row-action delete">চ্যাট বন্ধ</button><button id="chatClearBtn" class="row-action delete">সব মেসেজ মুছুন</button><button id="chatBotOnBtn" class="primary-btn">অটো বট চালু</button><button id="chatBotOffBtn" class="row-action">অটো বট বন্ধ</button></div>
+              <div class="user-tools"><label class="user-search"><i class="fa-solid fa-magnifying-glass"></i><input id="chatAdminSearch" type="search" placeholder="ইউজার/মেসেজ খুঁজুন…"></label><span id="chatAdminCount" class="user-count">মেসেজ লোড হচ্ছে…</span></div>
+              <div id="adminChatMessages" class="space-y-2 mt-3"><p class="admin-muted">চ্যাট মেসেজ লোড হচ্ছে…</p></div>
+            </section>
+            <!-- Add Game Form -->
+            <div id="adminAddGame" class="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl">
+                <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2"><i class="fa-solid fa-square-plus text-purple-400"></i> নতুন লাইভ গেম যুক্ত করুন</h3>
+                <form id="addGameForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">গেমের নাম</label>
+                        <input type="text" id="adminGameTitle" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">ক্যাটাগরি</label>
+                        <select id="adminGameCategory" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                            <option value="Action">Action</option>
+                            <option value="Arcade">Arcade</option>
+                            <option value="Puzzle">Puzzle</option>
+                            <option value="Racing">Racing</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">গেমের লোগো (ImgBB অটো-আপলোড বা Direct URL)</label>
+                        <input type="file" id="adminGameFile" accept="image/*" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-slate-300 mb-2 focus:outline-none">
+                        <input type="url" id="adminGameImg" placeholder="অথবা সরাসরি ইমেজের লিংক লিখুন (https://i.ibb.co/...)" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">গেম Embed / Play URL</label>
+                        <input type="url" id="adminGameUrl" required placeholder="https://game-url.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-purple-600/30">ফায়ারবেসে সেভ করুন</button>
+                </form>
+            </div>
+
+            <!-- Manage existing games -->
+            <div id="adminGames" class="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl md:col-span-2">
+              <div class="flex items-center justify-between gap-3 mb-4"><h3 class="text-lg font-semibold"><i class="fa-solid fa-list-check text-cyan-300"></i> গেম ম্যানেজমেন্ট</h3><span class="text-xs text-slate-400">এডিট / ডিলিট</span></div>
+              <div id="adminGamesList" class="space-y-2"><p class="text-sm text-slate-400">গেম লোড হচ্ছে...</p></div>
+            </div>
+            <!-- Manage existing banners -->
+            <div id="adminBanners" class="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl md:col-span-2">
+              <h3 class="text-lg font-semibold mb-4"><i class="fa-solid fa-images text-amber-300"></i> ব্যানার ম্যানেজমেন্ট</h3>
+              <div id="adminBannersList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"><p class="text-sm text-slate-400">ব্যানার লোড হচ্ছে...</p></div>
+            </div>
+            <!-- Add Banner & Controls -->
+            <div id="adminUtilityGroup" class="space-y-6">
+                <div id="adminAddBanner" class="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl">
+                    <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2"><i class="fa-solid fa-images text-amber-400"></i> নতুন ব্যানার যুক্ত করুন</h3>
+                    <form id="addBannerForm" class="space-y-3">
+                        <input type="text" id="bannerTitle" placeholder="ব্যানার টাইটেল" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none">
+                        <input type="url" id="bannerImg" placeholder="ব্যানার ইমেজের URL" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none">
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 rounded-lg text-sm transition-all">ব্যানার আপলোড করুন</button>
+                    </form>
+                </div>
+
+                <div id="adminSystem" class="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl">
+                    <h3 class="text-lg font-semibold text-slate-200 mb-2 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-red-400"></i> সিস্টেম কন্ট্রোল</h3>
+                    <button id="resetLeaderboardBtn" class="w-full bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-300 py-2.5 rounded-xl text-sm font-semibold transition-all">লিডারবোর্ড স্কোর রিসেট করুন</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="userEditModal" class="edit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="editUserTitle">
+      <div class="edit-backdrop" data-close-edit></div><section class="edit-card"><button type="button" class="edit-close" data-close-edit aria-label="বন্ধ করুন"><i class="fa-solid fa-xmark"></i></button><p class="panel-eyebrow">PLAYER ACCOUNT</p><h3 id="editUserTitle">ইউজার এডিট করুন</h3><p class="admin-muted">এখানে করা পরিবর্তন Firestore-এ সেভ হবে।</p>
+        <form id="editUserForm" class="edit-user-form"><input id="editOriginalId" type="hidden"><label>ইউজারের নাম<input id="editUserName" maxlength="20" required></label><label>ইউজার আইডি<input id="editUserId" required><small>আইডি পরিবর্তন করলে পুরোনো আইডি থেকে নতুন আইডিতে প্রোফাইল সরানো হবে। ইউজারকে নতুন আইডি দিয়ে পুনরায় প্রোফাইল তৈরি করতে হতে পারে।</small></label><label>মোট পয়েন্ট<input id="editUserScore" type="number" min="0" step="1" required></label><label>প্রোফাইল ছবির URL<input id="editUserPhoto" type="url" placeholder="https://…"></label><div id="editUserStatus" class="edit-status" aria-live="polite"></div><div class="edit-actions"><button type="button" class="secondary-btn" data-close-edit>বাতিল</button><button type="submit" class="primary-btn"><i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সেভ করুন</button></div></form>
+      </section>
+    </div>
+    <script src="js/security.js"></script>
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>

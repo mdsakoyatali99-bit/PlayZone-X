@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "games": { ".read": true, ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.token.email === 'mdsakoyatali99@gmail.com'" },
+    "banners": { ".read": true, ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.token.email === 'mdsakoyatali99@gmail.com'" },
+    "usernames": {
+      ".read": true,
+      "$username": {
+        ".write": "auth != null && !data.exists() && newData.val() === auth.uid",
+        ".validate": "$username.matches(/^[a-z0-9_.-]{3,20}$/) && newData.isString()"
+      }
+    }
+  }
+}
